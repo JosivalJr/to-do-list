@@ -1,0 +1,18 @@
+# Ignore backend
+/backend/venv/
+
+# Ignore frontend
+/frontend/node_modules/
+/frontend/.env
+
+# ignore default
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+.DS_Store
+.idea/
+.vscode/
+*.log
