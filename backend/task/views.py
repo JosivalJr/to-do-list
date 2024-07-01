@@ -1,4 +1,5 @@
-from django.http import JsonResponse, HttpResponse
+from http import HTTPStatus
+from django.http import JsonResponse
 from django.views import View
 from .models import Task
 
@@ -10,23 +11,50 @@ import json
 @method_decorator(csrf_exempt, name='dispatch')
 class TaskList(View):
     def get(self, request):
-        print('List tasks route')
-        return HttpResponse('List tasks route')
+        try:
+            tasks = list(Task.objects.all().values())
+            return JsonResponse(tasks, safe=False, status=HTTPStatus.ACCEPTED)
+        except Exception as error:
+            return JsonResponse({'error': str(error)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     def post(self, request):
-        print('Create task route')
-        return HttpResponse('Create task route')
+        try:
+            data = json.loads(request.body)
+            task = Task.objects.create(**data)
+            return JsonResponse(model_to_dict(task), status=HTTPStatus.CREATED)
+        except Exception as error:
+            return JsonResponse({'error': str(error)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class TaskManager(View):
     def get(self, request, id):
-        print('Find task route')
-        return HttpResponse('Find task route')
+        try:
+            task = Task.objects.get(id=id)
+            return JsonResponse(model_to_dict(task), status=HTTPStatus.ACCEPTED)
+        except Task.DoesNotExist:
+            return JsonResponse({'error': 'Task not found'}, status=HTTPStatus.NOT_FOUND)
+        except Exception as error:
+            return JsonResponse({'error': str(error)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     def patch(self, request, id):
-        print('Update task route')
-        return HttpResponse('Update task route')
+        try:
+            data = json.loads(request.body)
+            task = Task.objects.get(id=id)
+            for key, value in data.items():
+                setattr(task, key, value)
+            task.save()
+            return JsonResponse(model_to_dict(task), status=HTTPStatus.ACCEPTED)
+        except Task.DoesNotExist:
+            return JsonResponse({'error': 'Task not found'}, status=HTTPStatus.NOT_FOUND)
+        except Exception as error:
+            return JsonResponse({'error': str(error)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     def delete(self, request, id):
-        print('Delete task route')
-        return HttpResponse('Delete task route')
+        try:
+            task = Task.objects.get(id=id)
+            task.delete()
+            return JsonResponse({'message': 'Task deleted'}, status=HTTPStatus.NO_CONTENT)
+        except Task.DoesNotExist:
+            return JsonResponse({'error': 'Task not found'}, status=HTTPStatus.NOT_FOUND)
+        except Exception as error:
+            return JsonResponse({'error': str(error)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
