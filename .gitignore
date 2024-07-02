@@ -1,5 +1,6 @@
 # Ignore backend
 /backend/venv/
+/backend/build/
 
 # Ignore frontend
 /frontend/node_modules/
